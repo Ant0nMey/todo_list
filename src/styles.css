@@ -7,8 +7,25 @@ body {
 
 aside {
     grid-area: aside;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    padding: 20px;
 }
 
 main {
     grid-area: main;
+}
+
+.projects-container {
+    display : flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.projects-container > div {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 80%;
+    gap: 10%;
 }
