@@ -1,17 +1,17 @@
-import Projet from "./projet";
+import Project from "./projet";
 
 export default class ProjectManager {
     constructor() {
         this.projects = [];
-        this.activeProjectId = null;
+        this.activeProject = [];
     }
 
     add(projectName) {
-        const project = new Projet(projectName);
+        const project = new Project(projectName);
         this.projects.push(project);
-        // Par défaut, le nouveau projet devient actif
-        this.activeProjectId = project.id;
-
+        console.log('project.id :', project.id)
+        this.activeProject.pop();
+        this.activeProject.push(project); // Par défaut, le projet créé devient projet actif.
         return project;
     }
 
@@ -23,14 +23,11 @@ export default class ProjectManager {
         return this.projects;
     }
 
-    getActiveProject() {
-        if (!this.activeProjectId) return null;
-        return this.projects.find(p => p.id === this.activeProjectId) || null;
+    setActiveProject(id) {
+        this.activeProject = this.projects.filter(t => t.id === id )
     }
 
-    setActiveProject(id) {
-        if (this.projects.some(p => p.id === id)) {
-            this.activeProjectId = id;
-        }
+    getActiveProject() {
+        return this.activeProject[0];
     }
 }
