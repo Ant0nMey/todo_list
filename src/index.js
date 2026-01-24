@@ -6,19 +6,28 @@ import TaskManager from "./taskMangager.js";
 const display = new Display();
 const projectManager = new ProjectManager();
 const taskManager = new TaskManager(projectManager);
+const dialog = document.querySelector("dialog");
+const showButton = document.querySelector("dialog + button");
+const closeButton = document.querySelector("dialog button");
 
 /* Lors de l'ajout d'un projet :
      - Ajouter le projet dans la sidebar.
      - Définir le nouveau projet créé comme projet actif.
 */
+showButton.addEventListener("click", () => {
+  dialog.showModal();
+});
+
 let buttonAddProject = document.getElementById("ajouter-projet-btn");
 buttonAddProject.addEventListener('click', () => {
-    const InputName = document.getElementById("ajouter-projet-input").value;
+    let InputName = document.getElementById("ajouter-projet-input").value;
     if (InputName == "") { return };
     projectManager.add(InputName);
     console.log('Active Project :', projectManager.getActiveProject())
     display.projects(projectManager.getAll());
     display.tasks(taskManager.getActiveProjectTask());
+    document.getElementById("ajouter-projet-input").value = '';
+    dialog.close();
 });
 
 /* Lors de l'ajout d'une tâche :
