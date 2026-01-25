@@ -17,6 +17,11 @@ export default class ProjectManager {
 
     delete(id) {
         this.projects = this.projects.filter(p => p.id !== id);
+        try {
+            this.setActiveProject(this.projects.slice(-1)[0].id);
+        } catch (error) {
+            console.log('Plus de projet actif')
+        }
     }
 
     getAll() {

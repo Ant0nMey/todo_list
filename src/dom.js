@@ -23,29 +23,42 @@ export default class Display {
         let div = document.createElement('div');
 
         div.dataset.projectId = project.id;
-        div.className= "project"
+        /* Le projet ajouté récupère la classe .active. */
+        this.#findAndRemoveActiveClass();
+        div.classList.add('project', 'active');
+
         div.innerText = project.name;
 
         let button = document.createElement('button');
         button.className = "delete-project-btn";
         button.innerText = "-";
-
-        button.addEventListener('click', (e) => {
-
-            // Récupérer seulement le click bouton delete.
-            e.stopPropagation();
-
-            /* - Le callback onDeleteProject est appelé en clickant sur le bouton delete d'un projet.
+        
+        /* - Listerner sur le bouton 'supprimer' du projet.
+            Le callback onDeleteProject est appelé en clickant sur le bouton delete du projet.
             Le callback permet de récupéré l'id du projet associé via le DOM et de le passer à la
             fonction delete() du projectManager. */
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Récupérer seulement le click bouton delete.
             if (this.onDeleteProject) {
+            this.tasksContainerDiv.innerHTML = ""; // Supprime l'affichage des tâches du projet.
+            
             const projectId = e.target.closest('.project').dataset.projectId;
-            this.onDeleteProject(projectId);
+            this.onDeleteProject(projectId)
+
         }});
 
+        /* Listener sur le texte du projet.
+           Si le projet est cliqué :
+            - il passe actif dans le constructeur de la classe Display
+            - Ajout de la classe 'active' sur le projet dans le DOM.
+        */
         div.addEventListener('click', (e) => {
             const projectId = e.target.closest('.project').dataset.projectId;
             this.onActiveProject(projectId);
+
+            /* Le projet ajouté récupère la classe .active */
+            this.#findAndRemoveActiveClass();
+            e.target.classList.add("active");
 
         })
 
@@ -55,7 +68,6 @@ export default class Display {
     }
 
     tasks (projectTasks) {
-
         this.tasksContainerDiv.innerHTML = "";
 
         projectTasks.forEach(task => {
@@ -65,6 +77,12 @@ export default class Display {
 
     #createTaskDiv (task) {
 
+        /* création de la carte 'div' pour la tâche ajouté. Elle comportera les éléments suivant :
+             - id (sous forme de classe)
+             - titre (h2)
+             - description (p)
+             - un bouton permettant de supprimer la tâche.
+        */
         let div = document.createElement("div");
 
         div.dataset.taskId = task.id;
@@ -88,16 +106,19 @@ export default class Display {
         this.tasksContainerDiv.appendChild(div);
 
         button.addEventListener('click', (e) => {
-        // Récupérer seulement le click bouton delete.
-        e.stopPropagation();
-        if (this.onDeleteTask) {
-            const taskId = e.target.closest('.task').dataset.taskId;
-            console.log('button delete dans dom.js')
-            console.log('e.target.closest(".task").dataset.taskId', e.target.closest('.task').dataset.taskId)
-            /* onDeleteProject est un callback constructor. Si click sur bouton supprimer :
-               exécute la fonction onDeleteProject défini dans index.js
-            */
-            this.onDeleteTask(taskId);
+            e.stopPropagation(); // Récupérer seulement le click bouton delete.
+            if (this.onDeleteTask) {
+                const taskId = e.target.closest('.task').dataset.taskId;
+                /* onDeleteProject est un callback constructor. Si click sur bouton supprimer :
+                    exécute la fonction onDeleteProject défini dans index.js */
+                this.onDeleteTask(taskId);
         }});
-    }   
+    }  
+
+    #findAndRemoveActiveClass() {
+        if (document.querySelector('.active')) {
+            let activeDivProject = document.querySelector('.active');
+            activeDivProject.classList.remove("active");
+        }
+    }
 }

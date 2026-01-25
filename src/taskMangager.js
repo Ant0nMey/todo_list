@@ -12,7 +12,12 @@ export default class TaskManager {
     }
 
     getActiveProjectTask () {
+        if (this.projectManager.projects[0] == undefined) {
+            console.log('ok');
+            return [];
+        }
         const currentProject = this.projectManager.getActiveProject();
+        console.log('getActiveprojecttask() -> currentProject : ', currentProject);
         return currentProject.tasks;
     }
 
