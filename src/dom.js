@@ -1,124 +1,78 @@
 export default class Display {
     constructor () {
-        this.projectsContainerDiv = document.querySelector('.projects-container');
-        this.tasksContainerDiv = document.querySelector('main');
-        this.addProjectBouton = document.getElementById('ajouter-projet-btn');
+        this.projectsDiv = document.querySelector('.projects-container');
+        this.tasksDiv = document.querySelector('main');
+
+        this.onAddProject = null;
+        this.onSelectProject = null;
         this.onDeleteProject = null;
+
+        this.onAddTask = null;
         this.onDeleteTask = null;
-        this.onActiveProject = null;
+        this.onEditTask = null;
     }
 
-    projects (projectsArray) {
-
+    renderProjects(projects, activeId) {
         this.projectsContainerDiv.innerHTML = "";
 
-        projectsArray.forEach((project => {
-        this.#createProjectDiv(project);
+        projects.forEach(project => {
+            const div = document.createElement("div");
+            div.className = "project";
+            div.dataset.id = project.id;
+            div.textContent = project.name;
+ 
+            if (project.id === activeId) div.classList("active");
 
-        }));
-    };
+            div.addEventListener("click", () => {
+                if (this.onSelectProject) this.onSelectProject(project.id)
+            });
 
-    #createProjectDiv (project) {
+            const del = document.createElement("button");
+            del.textContent = "-";
+            del.addEventListener("click", e => {
+                e.stopPropagation();
+                if (this.onDeleteProject) this.onDeleteProject(project.id);
+            });
 
-        let div = document.createElement('div');
+            const addTask = document.createElement("button");
+            addTask.textContent = "+ tâche";
+            addTask.addEventListener("click", e => {
+                e.stopPropagation();
+                if (this.onAddTask) this.onAddTask();
+            });
 
-        div.dataset.projectId = project.id;
-        /* Le projet ajouté récupère la classe .active. */
-        this.#findAndRemoveActiveClass();
-        div.classList.add('project', 'active');
-
-        div.innerText = project.name;
-
-        let button = document.createElement('button');
-        button.className = "delete-project-btn";
-        button.innerText = "-";
-        
-        /* - Listerner sur le bouton 'supprimer' du projet.
-            Le callback onDeleteProject est appelé en clickant sur le bouton delete du projet.
-            Le callback permet de récupéré l'id du projet associé via le DOM et de le passer à la
-            fonction delete() du projectManager. */
-        button.addEventListener('click', (e) => {
-            e.stopPropagation(); // Récupérer seulement le click bouton delete.
-            if (this.onDeleteProject) {
-            this.tasksContainerDiv.innerHTML = ""; // Supprime l'affichage des tâches du projet.
-            
-            const projectId = e.target.closest('.project').dataset.projectId;
-            this.onDeleteProject(projectId)
-
-        }});
-
-        /* Listener sur le texte du projet.
-           Si le projet est cliqué :
-            - il passe actif dans le constructeur de la classe Display
-            - Ajout de la classe 'active' sur le projet dans le DOM.
-        */
-        div.addEventListener('click', (e) => {
-            const projectId = e.target.closest('.project').dataset.projectId;
-            this.onActiveProject(projectId);
-
-            /* Le projet ajouté récupère la classe .active */
-            this.#findAndRemoveActiveClass();
-            e.target.classList.add("active");
-
-        })
-
-        div.appendChild(button);
-        this.projectsContainerDiv.appendChild(div);
-
-    }
-
-    tasks (projectTasks) {
-        this.tasksContainerDiv.innerHTML = "";
-
-        projectTasks.forEach(task => {
-            this.#createTaskDiv(task);
+            div.append(del, addTask);
+            this.projectsDiv.appendChild(div);
         });
     }
 
-    #createTaskDiv (task) {
+    renderTasks(tasks) {
+        this.tasksDiv.innerHTML ="";
 
-        /* création de la carte 'div' pour la tâche ajouté. Elle comportera les éléments suivant :
-             - id (sous forme de classe)
-             - titre (h2)
-             - description (p)
-             - un bouton permettant de supprimer la tâche.
-        */
-        let div = document.createElement("div");
+        tasks.forEach(task => {
+            const div = document.createElement("div");
+            div.className = "task";
 
-        div.dataset.taskId = task.id;
-        div.className= "task"
+            const title = document.createElement("h3");
+            title.textContent = task.title;
 
-        let divTitle = document.createElement("h2")
-        divTitle.innerText = task.title;
+            const desc = document.createElement("p");
+            desc.textContent = task.description;
 
-        let divDescription = document.createElement("p")
-        divDescription.innerText = task.description;
+            const del = document.createElement("button");
+            del.textContent = "Supprimer";
+            del.addEventListener("click", () => {
+                if (this.onDeleteTask) this.onDeleteTask(task.id);
+            });
 
-        div.appendChild(divTitle);
-        div.appendChild(divDescription);
+            const edit = document.createElement("button");
+            edit.textContent = "Modifier"
+            edit.addEventListener("click", () => {
+                if (this.onEditTask) this.onEditTask(task.id);
+            })
 
-        let button = document.createElement("button");
-        button.className = "delete-task-btn";
-        button.innerText = "-";
-        
-        div.appendChild(button);
-
-        this.tasksContainerDiv.appendChild(div);
-
-        button.addEventListener('click', (e) => {
-            e.stopPropagation(); // Récupérer seulement le click bouton delete.
-            if (this.onDeleteTask) {
-                const taskId = e.target.closest('.task').dataset.taskId;
-                /* onDeleteProject est un callback constructor. Si click sur bouton supprimer :
-                    exécute la fonction onDeleteProject défini dans index.js */
-                this.onDeleteTask(taskId);
-        }});
-    }  
-
-    #findAndRemoveActiveClass() {
-        if (document.querySelector('.active')) {
-            let activeDivProject = document.querySelector('.active');
-            activeDivProject.classList.remove("active");
-        }
+            div.append(title, desc, edit, del);
+            this.tasksDiv.appendChild(div);
+        });
     }
 }
