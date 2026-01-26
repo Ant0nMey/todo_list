@@ -15,19 +15,19 @@ export default class ProjectManager {
 
     delete(id) {
         this.projects = this.projects.filter(p => p.id !== id);
-        try {
-            this.setActiveProject(this.projects.slice(-1)[0].id);
-        } catch (error) {
-            console.log('Plus de projet actif')
-        }
+        this.activeProjectId = null;
     }
 
-    setActiveProject(id) {
+    setActiveProjectId(id) {
         this.activeProjectId = id;
     }
 
+    getActiveProjectId() {
+        return this.activeProjectId;
+    }
+
     getActiveProject() {
-        return this.projects.find(p => p.id === this.activeProjectId) || null;
+        return this.projects.filter(p => p.id == this.activeProjectId)
     }
 
     getAll() {

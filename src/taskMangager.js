@@ -9,21 +9,21 @@ export default class TaskManager {
         const currentProject = this.projectManager.getActiveProject();
         if (!currentProject) return;
 
-        currentProject.tasks.push(new Task(title, description));
+        currentProject[0].tasks.push(new Task(title, description));
     }
 
     delete(taskId) {
         const currentProject = this.projectManager.getActiveProject();
         if(!currentProject) return;
-
-        currentProject.tasks = project.tasks.filter(t => t.id !== taskId);
+        console.log('currentProject :', currentProject[0].tasks);
+        currentProject[0].tasks = currentProject[0].tasks.filter(t => t.id !== taskId);
     }
 
     update(taskId, data) {
         const currentProject = this.projectManager.getActiveProject();
         if (!currentProject) return;
 
-        const task = currentProject.tasks.find(t => t.id === taskId);
+        const task = currentProject[0].tasks.find(t => t.id === taskId);
         if (!task) return;
 
         task.title = data.title;
@@ -32,6 +32,7 @@ export default class TaskManager {
 
     getTasks() {
         const currentProject = this.projectManager.getActiveProject();
-        return currentProject ? currentProject.tasks : [];
+        if ( currentProject.length == 0 ) { return [] }; // Empêcher la lecture des tâches si pas de projet.
+        return currentProject ? currentProject[0].tasks : [];
     }
 }

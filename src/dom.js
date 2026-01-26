@@ -12,8 +12,8 @@ export default class Display {
         this.onEditTask = null;
     }
 
-    renderProjects(projects, activeId) {
-        this.projectsContainerDiv.innerHTML = "";
+    renderProjects(projects, activeProjectId) {
+        this.projectsDiv.innerHTML = "";
 
         projects.forEach(project => {
             const div = document.createElement("div");
@@ -21,7 +21,7 @@ export default class Display {
             div.dataset.id = project.id;
             div.textContent = project.name;
  
-            if (project.id === activeId) div.classList("active");
+            if (project.id === activeProjectId) div.classList.add("active");
 
             div.addEventListener("click", () => {
                 if (this.onSelectProject) this.onSelectProject(project.id)
@@ -34,6 +34,9 @@ export default class Display {
                 if (this.onDeleteProject) this.onDeleteProject(project.id);
             });
 
+            /* Afficher le bouton 'ajout de tâche' seulement pour le project actif.
+               Sinon afficher seulement le bouton delete. */
+            if (project.id === activeProjectId) {
             const addTask = document.createElement("button");
             addTask.textContent = "+ tâche";
             addTask.addEventListener("click", e => {
@@ -43,6 +46,10 @@ export default class Display {
 
             div.append(del, addTask);
             this.projectsDiv.appendChild(div);
+            } else {  
+            div.append(del);
+            this.projectsDiv.appendChild(div);
+            }
         });
     }
 
@@ -52,12 +59,16 @@ export default class Display {
         tasks.forEach(task => {
             const div = document.createElement("div");
             div.className = "task";
+            div.setAttribute('data-id', task.id);
 
             const title = document.createElement("h3");
             title.textContent = task.title;
 
             const desc = document.createElement("p");
             desc.textContent = task.description;
+
+            const btnDiv = document.createElement("div");
+            btnDiv.className = "btn-div"
 
             const del = document.createElement("button");
             del.textContent = "Supprimer";
@@ -68,10 +79,14 @@ export default class Display {
             const edit = document.createElement("button");
             edit.textContent = "Modifier"
             edit.addEventListener("click", () => {
+                let dialog = document.getElementById("task-dialog")
+                dialog.classList.add('edit')
                 if (this.onEditTask) this.onEditTask(task.id);
+                dialog.classList.remove('edit')
             })
 
-            div.append(title, desc, edit, del);
+            btnDiv.append(edit, del)
+            div.append(title, desc, btnDiv);
             this.tasksDiv.appendChild(div);
         });
     }
