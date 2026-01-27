@@ -80,7 +80,7 @@ export default class Display {
             edit.textContent = "Modifier"
             edit.addEventListener("click", () => {
                 let dialog = document.getElementById("task-dialog")
-                dialog.classList.add('edit')
+                dialog.className += "edit"
                 if (this.onEditTask) this.onEditTask(task.id);
                 dialog.classList.remove('edit')
             })

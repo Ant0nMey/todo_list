@@ -17,36 +17,23 @@ const taskDialogAddbtn = document.getElementById("add-btn-task");
 let taskDialogInputTitle = document.getElementById("title-input-task");
 let taskDialogInputDescription = document.getElementById("description-input-task");
 
+let dialogMode = null;
+let currentTaskId = null;
 /* Lors de l'ajout d'un projet :
      - Ajouter le projet dans la sidebar.
      - Définir le nouveau projet créé comme projet actif. */
 
 addProjectBtn.addEventListener("click", () => {
-    projectDialog.showModal();
+    openAndResetProjectDialog()
 });
 
 projectDialogAddbtn.addEventListener("click", () => {
         projectManager.add(projectDialogInputTitle.value);
-        
-        projectDialogInputTitle.value = "";
         display.renderProjects(projectManager.projects, projectManager.activeProjectId);
+        display.renderTasks(taskManager.getTasks(), projectManager.activeProjectId);
         projectDialog.close();
 });
 
-addProjectBtn.addEventListener("click", () => {
-    projectDialog.showModal();
-});
-
-
-/* Lors de l'ajout d'une tâche :
-     - Ajouter la tâche dans le projet actif.
-     - Afficher toutes les tâches du projet actif. */
-
-
-/* - Le callback onDeleteProject est appelé en clickant sur le bouton delete d'un projet.
-     Le callback permet de récupéré l'id du projet associé via le DOM et de le passer à la
-     fonction delete() du projectManager.
-   - Nous réaffichons ensuite toutes les projets dans la sidebar. */
 display.onDeleteProject = (id) => {
     projectManager.delete(id);
     
@@ -54,57 +41,79 @@ display.onDeleteProject = (id) => {
     display.renderTasks(taskManager.getTasks());
 }
 
-/*  Le callback onActiveProject est appelé en clickant sur un projet
-    Le callback permet de passer le projet clické dans l'état actif. */
 display.onSelectProject = (id) => {
     projectManager.setActiveProjectId(id);
     display.renderProjects(projectManager.getAll(), projectManager.getActiveProjectId());
     display.renderTasks(taskManager.getTasks());
 }
 
-/*  Le callback onDeleteTask est appelé en clickant sur le bouton delete d'une tâche.
-    Le callback permet de récupéré l'id de la tâche associé via le DOM et de le passer à la
-    fonction delete() du taskManager. 
-    Nous réaffichons ensuite toutes les tâches du projet actif. */
 display.onDeleteTask = (id) => {
     taskManager.delete(id);
     display.renderTasks(taskManager.getTasks());
 }
 
 display.onAddTask = () => {
+    dialogMode = "add";
+
+    taskDialogInputTitle.value = "";
+    taskDialogInputDescription.value = "";
+
+    taskDialogAddbtn.textContent = "Ajouter";
     taskDialog.showModal();
 }
 
-if (!taskDialog.classList.contains('edit')) {
 taskDialogAddbtn.addEventListener("click", () => {
-    let title = taskDialogInputTitle.value
-    let description = taskDialogInputDescription.value
-    taskManager.add(title, description)
+    const data = getTaskDialogInput();
+
+    if (dialogMode === "add") {
+        taskManager.add(data.title, data.description);
+    }
+
+    if (dialogMode === "edit") {
+        taskManager.update(currentTaskId, data);
+    }
+    closeAndResetTaskDialog();
     display.renderTasks(taskManager.getTasks(), projectManager.activeProjectId);
-    taskDialogInputTitle.value = "";
-    taskDialogInputDescription.value = "";
-    taskDialog.close();
 });
-}
 
 display.onEditTask = (id) => {
     const currentProject = projectManager.getActiveProject();
-    let task = currentProject[0].tasks.find(t => t.id == id);
-    console.log('task ', task.title);
+    console.log('currentProject :', currentProject)
+    console.log('id :', id)
+    console.log('currentProject[0].tasks.find(t => t.id == id :', currentProject[0].tasks.find(t => t.id == id))
+    const task = currentProject[0].tasks.find(t => t.id == id);
+    console.log('task.id :', task.id)
+    dialogMode = "edit";
+    currentTaskId = task.id
+    console.log('currentTaskId : ', currentTaskId)
 
-    taskDialogInputDescription = task.description;
-    taskDialogInputTitle = task.title;
+    taskDialogInputTitle.value = task.title;
+    taskDialogInputDescription.value = task.description;
+
+    taskDialogAddbtn.textContent = "Modifier";
     taskDialog.showModal();
-
-    taskDialogAddbtn.addEventListener("click", () => {
-        let data = {};
-        data.title = taskDialogInputTitle.value
-        data.description = taskDialogInputDescription.value
-        taskManager.update(id, data);
-        display.renderTasks(taskManager.getTasks(), projectManager.activeProjectId);
-        taskDialogInputTitle.value = "";
-        taskDialogInputDescription.value = "";
-        taskDialog.close();
-    })
 }
 
+function openAndResetProjectDialog() {
+    projectDialogInputTitle.value = "";
+    projectDialog.showModal();
+}
+
+function openAndResetTaskDialog() {
+    taskDialogInputTitle.value = "";
+    taskDialogInputDescription.value = "";
+    taskDialog.showModal();
+}
+
+function closeAndResetTaskDialog() {
+    // taskDialogInputTitle.value = "";
+    // taskDialogInputDescription.value = "";
+    taskDialog.close();
+}
+
+function getTaskDialogInput() {
+    let data = {};
+    data.title = taskDialogInputTitle.value
+    data.description = taskDialogInputDescription.value
+    return data;
+}
