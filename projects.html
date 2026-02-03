@@ -1,95 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <title>ToDo List – Vanilla JS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToDo List</title>
-    <link type="text/css" rel="stylesheet" href="./css/style.css"/>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./css/style.css">
+
+    <!-- JS (chargé après le DOM) -->
+    <script src="./js/application.js" defer></script>
 </head>
 <body>
 
-<section>
-    <h1>ToDo List with Vanilla JS</h1>
-</section>
-<div>
-	<h4>Write this in console:</h4>
-	<p>projectsCollectionInstance.updateProject({id: 1, name: 'teeest'})</p>
-    <p>projectsCollectionInstance.addProject(new ProjectModel({id: 10, name: 'ok'}))</p>
-    <p>projectsCollectionInstance.addToDoToActiveProject(new ToDoModel({id: 2, title: 'test', description: 'bonjour'}))<p>
-</div>
+    <header>
+        <h1>ToDo List – Vanilla JS</h1>
+    </header>
 
-<nav data-container="projetcs-list"></nav>
-<main data-container="todos-list"></main>
+    <!-- CONTENEUR PRINCIPAL DE L'APP -->
+    <main id="app"></main>
 
-<script type="application/javascript" src="./js/application.js"></script>
-<script type="application/javascript">
+    <!-- MODALE GLOBALE -->
+    <div id="grey-modal-background" class="hidden"></div>
 
-    // Create Projects Object
-    let projectsCollectionInstance = new ProjectsCollectionModel([
-        new ProjectModel({
-            id: 0,
-            name: 'Default',
-            toDos: [ new ToDoModel({id: 1, title: 'Default', description: 'Default Description'}), new ToDoModel({id: 2, title: 'Default 2', description: 'Default 2 Description'})]
-        }),
-        new ProjectModel({
-            id: 1,
-            name: '1er projet'
-        }),
-        new ProjectModel({
-            id: 2,
-            name: '2eme projet'
-        })
-    ]);
-
-projectsCollectionInstance.subscribe(() => {
-    /* ----- Projects ----- */
-    const nav = document.querySelector("nav");
-    nav.textContent = "";
-
-    const ul = document.createElement("ul");
-
-    projectsCollectionInstance.projects.forEach(project => {
-        const li = document.createElement("li");
-        li.textContent = project.name;
-
-        li.addEventListener("click", () => {
-            projectsCollectionInstance.activeProject = project.id;
-            projectsCollectionInstance.notifySubscriber();
-        });
-
-        ul.appendChild(li);
-    });
-    
-    nav.appendChild(ul);
-
-    /* ------ Todos ------- */
-    const main = document.querySelector("main");
-    main.textContent ="";
-
-    const project = projectsCollectionInstance.getActiveProject();
-    if (!project || !project.toDos || project.toDos.length == 0) {
-        main.textContent = "Aucune tâche ajoutée";
-        return;
-    };
-
-    project.toDos.forEach(todo => {
-        const div = document.createElement("div");
-        div.className = "todo";
-
-        const h3 = document.createElement("h3");
-        h3.textContent = todo.title;
-
-        const p = document.createElement("p");
-        p.textContent = todo.description;
-
-        div.append(h3, p);
-        main.appendChild(div);
-    });
-});
-
-    projectsCollectionInstance.notifySubscriber();
-
-</script>
-    
 </body>
 </html>

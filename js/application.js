@@ -1,322 +1,255 @@
-class Observable{
-    constructor(){
+/*************************************************
+ * OBSERVABLE
+ *************************************************/
+class Observable {
+    constructor() {
         this.subscribers = [];
     }
 
-    /**
-     *  Subscribe for changes
-     * Add a function you want to bo executed whenever this model changes.
-     * 
-     * @params Function fn
-     * @return null
-     */
-    subscribe(fn){
+    subscribe(fn) {
         this.subscribers.push(fn);
     }
 
-    /**
-     * Unsubscribe from being notified whenever this model changes.
-     * 
-     * @params Function fn
-     * @return null
-     */
-    unsubscribe(fn){
-        this.subscribers = this.subscribers.filter( it => it !== fn );
-    }
-
-    /**
-     * Notify subscribers
-     * 
-     * @return null
-     */
-    notifySubscriber() {
-        this.subscribers.forEach( fn => fn() );
+    notify() {
+        this.subscribers.forEach(fn => fn());
     }
 }
 
-class ToDoModel{
-
-    /**
-     * @param {id: Number, title: String, description: String}
-     * @return void
-     */
-    constructor(obj) {
-        this.updateProperties(obj);
+/*************************************************
+ * MODELS
+ *************************************************/
+class ToDoModel {
+    constructor({ id, title, description }) {
+        this.id = crypto.randomUUID();
+        this.title = title;
+        this.description = description;
     }
 
-    /**
-     * Map properties to this instance
-     * 
-     * @param {id: Number, title: String, description: String}
-     * @return void
-     */
-    updateProperties(obj) {
-        this.id = obj.id;
-        if (obj.title) this.title = obj.title;
-        if (obj.description) this.description = obj.description;
-    }
-
-    /**
-    * Get a list of properties for this class
-     * 
-    * @return {string[]}
-     */
-    static getFields() {
-    return ['id', 'title', 'description'];
+    update({ title, description }) {
+        if (title !== undefined) this.title = title;
+        if (description !== undefined) this.description = description;
     }
 }
 
 class ProjectModel {
-
-    /**
-     * @param { id: Number, name: String}
-     */
-    constructor(obj) {
-        this.toDos = [];
-        this.updateProperties(obj);
+    constructor({ id, name }) {
+        this.id = crypto.randomUUID();
+        this.name = name;
+        this.todos = [];
     }
 
-    /**
-     * Map properties to this instance
-     * 
-     * @param {id: Number, name: String}
-     * @return void
-     */
-    updateProperties(obj) {
-        this.id = obj.id;
-        if(obj.name) this.name = obj.name;
-        if(Array.isArray(obj.toDos)) this.toDos = obj.toDos;
+    addTodo(todo) {
+        this.todos.push(todo);
     }
 
-    addToDo(todo) {
-        this.toDos.push(todo);
-    }
-
-    /**
-    * Get a list of properties for this class
-     * 
-    * @return {string[]}
-     */
-    static getFields() {
-    return ['id', 'name', 'todos'];
+    update({ name }) {
+        if (name !== undefined) this.name = name;
     }
 }
 
-class ProjectsCollectionModel extends Observable{
-
-    constructor(projects) {
+/*************************************************
+ * COLLECTION
+ *************************************************/
+class ProjectsCollection extends Observable {
+    constructor(projects = []) {
         super();
         this.projects = projects;
-        this.activeProject = projects[0].id;
-    }
-
-    /**
-     * Loop through all registerted projects and return
-     * the project object that matches the id.
-     * 
-     * @params Number id
-     * @return Project
-     */
-    getProject(id) {
-        return this.projects.find( it => it.id === id);
+        this.activeProjectId = projects.length ? projects[0].id : null;
     }
 
     getActiveProject() {
-        return this.projects.find( it => it.id === this.activeProject)
+        return this.projects.find(p => p.id === this.activeProjectId);
     }
 
-    /**
-     * Register a new project to this collection.
-        * Notify the subscriber.
-     * 
-     * @params Project project
-     * @return void
-     */
+    getProject(id) {
+        return this.projects.find(p => p.id === id);
+    }
+
     addProject(project) {
-        if (project.name == null) return;
         this.projects.push(project);
-        this.activeProject = project.id;
-        this.notifySubscriber();
+        this.activeProjectId = project.id;
+        this.notify();
     }
 
-    updateProject(obj) {
-        const project = this.getProject(obj.id);
-        project.updateProperties(obj);
-        this.notifySubscriber();
-    }
-
-    addToDoToActiveProject(ToDoModel) {
-        const project = this.getActiveProject();
+    updateProject({ id, name }) {
+        const project = this.getProject(id);
         if (!project) return;
-
-        project.addToDo(ToDoModel);
-        this.notifySubscriber();
-    }
-
-    getToDo(id) {
-        let activeProject = this.getActiveProject();
-        return activeProject.toDos.find( it => it.id === id);
-    }
-
-    updateToDo(obj) {
-        console.log('obj :', obj);
-        const tudo = this.getToDo(obj.id);
-        tudo.updateProperties(obj);
-        this.notifySubscriber();
-    }
-
-    removeToDo(id) {
-        const project = this.getActiveProject();
-        project.toDos = project.toDos.filter(todo => todo.id !== id);
-        this.notifySubscriber();
+        project.update({ name });
+        this.notify();
     }
 }
 
-/**
- * GreyModalElement is a singleton
- */
-const GreyModalElement = function() {
+/*************************************************
+ * MODAL SINGLETON
+ *************************************************/
+const GreyModal = (() => {
     const element = document.getElementById('grey-modal-background');
-    return {
 
-        /**
-         * Show the modal.
-         * 
-         * @return void
-         */
-        show: function() {
+    return {
+        show(content) {
+            element.innerHTML = '';
+            element.appendChild(content);
             element.classList.remove('hidden');
         },
-
-        /**
-         * Hide the modal and clear its content.
-         * 
-         * @return void
-         */
-        hide: function() {
-            element.innerHTML = "";
+        hide() {
+            element.innerHTML = '';
             element.classList.add('hidden');
-        },
-
-        /**
-         * Append child element to the modal.
-         * 
-         * @return void
-         */
-        appendChild: function(childElement) {
-            element.appendChild(childElement);
         }
-    }
-}();
+    };
+})();
 
-/**
- * Project component. We call this a component as its behaviour is a
- * reusable component for web composition.
- * 
- * With this design it is also easier to map it over to a true web-component,
- * which will hopefully soon become a standard in all the major browsers.
- */
-/*class ProjectComponent {
-
-    constructor(obj){
-        this.containerElement = obj.containerElement;
-        this.fileds = ProjectModel.getFields();
-        this.updateProperties(obj);
-
-        this.showCreateProjectModalFn = () => {
-            const createProjectForm =
-                new CreateProjectFormComponent({}, this.projectsCollection)
-            createProjectForm.render();
-
-            GreyModalElement.appendChild(createProjectForm.formElement);
-            GreyModalElement.show();
-            createProjectForm.inputFieldForTitle.focus();
-        };
-
-        this.showEditProjectModalFn = event => {
-            const projectId =
-                event.target.getAttribute("data-project-id");
-
-        const editProjectForm =
-            new EditProjectFormComponent(
-                {},
-                this.projectsCollection,
-                this.projectsCollection.getProject(projectId)
-            );
-            editProjectForm.render()
-        }
-    }
-}
-*/
-
-class BaseFormAbstract{
-
-    constructor(obj){
-        if (new.target === BaseFormAbstract) {
-            throw new TypeError("Cannot construct Abstract instances directly");
-        }
-        this.method = obj.method || 'POST';
-        this.action = obj.action || null;
-        this.enctype = obj.enctype || null;
-
-        this.buildDOMElements();
-        this.updateAttributes();
+/*************************************************
+ * BASE FORM
+ *************************************************/
+class BaseForm {
+    constructor() {
+        this.form = document.createElement('form');
+        this.form.className = 'modal';
     }
 
-    buildDOMElements() {
-        this.formElement = document.createElement('FORM');
-
-        this.submitButtonElement = document.createElement('BUTTON');
-        this.submitButtonElement.type = "submit";
-        this.submitButtonElement.textContent = 'Submit';
-    }
-
-    updateAttributes() {
-        this.formElement.method = this.method;
-        this.formElement.action = this.action;
-        if(this.enctype){
-            this.formElement.enctype = this.enctype;
-        }
-    }
-
-    submit(){
-        this.formElement.submit();
+    render() {
+        return this.form;
     }
 }
 
-/**
- * Abstract class ProjectFormAbstract
- * This class contains business logic for the project form.
- */
-class ProjectFormAbstract extends BaseFormAbstract {
-
-    constructor(obj){
-        super(obj);
-        if (new.target === ProjectFormAbstract) {
-            throw new TypeError("Cannot construct Abstract instances directly");
-        }
-
-        this.destroyFormFn = () => {
-            GreyModalElement.hide()
-        };
-
-        this.submitEventFn = event => {
-            event.preventDefault();
-            this.submit();
-        };
-
-        this.updateFormElement();
-        this.updateSubmitButtonElement();
-        this.buildCancelButton();
+/*************************************************
+ * CREATE PROJECT FORM
+ *************************************************/
+class CreateProjectForm extends BaseForm {
+    constructor(collection) {
+        super();
+        this.collection = collection;
+        this.build();
     }
 
-    updateFormElement() {
-        this.formElement.className = "modal";
-    }
+    build() {
+        this.form.innerHTML = `
+            <label>Nom du projet</label>
+            <input type="text" />
+            <div class="actions">
+                <button type="submit">Créer</button>
+                <button type="button" class="cancel">Annuler</button>
+            </div>
+        `;
 
-    updateSubmitButtonElement() {
-        this.submitButtonElement.textContent = "Ajouter projet";
-        this.submitButtonElement.classList.add('green');
-        this.submitButtonElement.addEventListener('click', this.submitEventFn);
+        const input = this.form.querySelector('input');
+        const cancelBtn = this.form.querySelector('.cancel');
+
+        cancelBtn.onclick = () => GreyModal.hide();
+
+        this.form.onsubmit = e => {
+            e.preventDefault();
+            if (!input.value.trim()) return;
+
+            const project = new ProjectModel({
+                id: crypto.randomUUID(),
+                name: input.value.trim()
+            });
+
+            this.collection.addProject(project);
+            GreyModal.hide();
+        };
     }
 }
+
+/*************************************************
+ * EDIT PROJECT FORM
+ *************************************************/
+class EditProjectForm extends BaseForm {
+    constructor(collection, project) {
+        super();
+        this.collection = collection;
+        this.project = project;
+        this.build();
+    }
+
+    build() {
+        this.form.innerHTML = `
+            <label>Nom du projet</label>
+            <input type="text" value="${this.project.name}" />
+            <div class="actions">
+                <button type="submit">Mettre à jour</button>
+                <button type="button" class="cancel">Annuler</button>
+            </div>
+        `;
+
+        const input = this.form.querySelector('input');
+        const cancelBtn = this.form.querySelector('.cancel');
+
+        cancelBtn.onclick = () => GreyModal.hide();
+
+        this.form.onsubmit = e => {
+            e.preventDefault();
+            if (!input.value.trim()) return;
+
+            this.collection.updateProject({
+                id: this.project.id,
+                name: input.value.trim()
+            });
+
+            GreyModal.hide();
+        };
+    }
+}
+
+/*************************************************
+ * PROJECT LIST COMPONENT
+ *************************************************/
+class ProjectListComponent {
+    constructor(container, collection) {
+        this.container = container;
+        this.collection = collection;
+
+        this.collection.subscribe(() => this.render());
+        this.render();
+    }
+
+    render() {
+        this.container.innerHTML = '';
+
+        const ul = document.createElement('ul');
+
+        this.collection.projects.forEach(project => {
+            const li = document.createElement('li');
+            li.textContent = project.name;
+            li.dataset.id = project.id;
+
+            li.onclick = () => {
+                this.collection.activeProjectId = project.id;
+                GreyModal.show(new EditProjectForm(this.collection, project).render());
+            };
+
+            ul.appendChild(li);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.textContent = 'Créer un projet';
+        addBtn.onclick = () => {
+            GreyModal.show(new CreateProjectForm(this.collection).render());
+        };
+
+        this.container.appendChild(ul);
+        this.container.appendChild(addBtn);
+    }
+}
+
+class ToDoListComponent {
+    constructor(container, collection) {
+        this.container = container;
+        this.collection = collection;
+        
+    }
+}
+
+/*************************************************
+ * APP INIT
+ *************************************************/
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('app');
+
+    const collection = new ProjectsCollection([
+        new ProjectModel({ id: crypto.randomUUID(), name: 'Projet initial' })
+    ]);
+
+    new ProjectListComponent(container, collection);
+});
