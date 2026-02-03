@@ -67,7 +67,6 @@ projectsCollectionInstance.subscribe(() => {
     main.textContent ="";
 
     const project = projectsCollectionInstance.getActiveProject();
-    console.log(`project : ${project}, project.toDos.length : ${project.toDos.length}`)
     if (!project || !project.toDos || project.toDos.length == 0) {
         main.textContent = "Aucune tâche ajoutée";
         return;
